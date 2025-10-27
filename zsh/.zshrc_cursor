@@ -1,0 +1,3 @@
+# Cursor agent .zshrc version since default caused problems (tmux)
+
+HISTFILE='~/.cursor_zsh_history'

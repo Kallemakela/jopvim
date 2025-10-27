@@ -1,0 +1,28 @@
+{
+    "title": "Hold x as Delete",
+    "rules": [
+        {
+            "description": "Hold x to Delete",
+            "manipulators": [
+                {
+                    "type": "basic",
+                    "from": { "key_code": "x" },
+                    "to_if_held_down": [
+                        {
+                            "key_code": "delete_or_backspace",
+                            "repeat": true
+                        }
+                    ],
+                    "to": [{ "key_code": "x" }],
+                    "parameters": {
+                        "basic.to_if_held_down_threshold_milliseconds": 200,
+                        "basic.to_delayed_action_delay_milliseconds": 0,
+                        "basic.to_if_held_down_repeat_interval_milliseconds": 20
+                    }
+                }
+
+            ]
+        }
+    ]
+}
+

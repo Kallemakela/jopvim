@@ -1,0 +1,18 @@
+matches:
+  - trigger: "pl;"
+    replace: "pytorch lightning"
+
+  - trigger: "cnc;"
+    replace: "Only answer the question. Do not look at any code."
+
+  - trigger: "wtd;"
+    replace: "What to do?"
+
+  - trigger: "wys;"
+    replace: "https://www.youtube.com/results?search_query="
+
+  - trigger: "nc;"
+    replace: "do not run any commands"
+
+  - trigger: "docs;"
+    replace: "Read the docs and tell the real solution."

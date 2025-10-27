@@ -1,0 +1,14 @@
+customCommands:
+  - key: 'i'
+    context: 'files'
+    description: 'Add selected file or dir to .gitignore'
+    command: |
+      if [ -d "{{.SelectedFile.Name}}" ]; then
+        echo "{{.SelectedFile.Name}}/" >> .gitignore
+      else
+        echo "{{.SelectedFile.Name}}" >> .gitignore
+      fi
+      git add .gitignore
+    subprocess: false
+    reload: true
+

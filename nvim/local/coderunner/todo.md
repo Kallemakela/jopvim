@@ -1,0 +1,2 @@
+- [ ] run current file
+- [ ] run previous command

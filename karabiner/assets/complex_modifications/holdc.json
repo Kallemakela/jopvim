@@ -1,0 +1,25 @@
+{
+    "title": "Hold c as Enter",
+    "rules": [
+        {
+            "description": "Hold c to Enter",
+            "manipulators": [
+                {
+                    "type": "basic",
+                    "from": { "key_code": "c" },
+                    "to_if_held_down": [
+                        {
+                            "key_code": "return_or_enter"
+                        }
+                    ],
+                    "to": [{ "key_code": "c" }],
+                    "parameters": {
+                        "basic.to_if_held_down_threshold_milliseconds": 200,
+                        "basic.to_delayed_action_delay_milliseconds": 0
+                    }
+                }
+            ]
+        }
+    ]
+}
+

@@ -1,0 +1,42 @@
+{
+	"title": "Set and click location",
+	"rules": [
+	  {
+		"description": "Cmd+shift+§ saves current position",
+		"manipulators": [
+		  {
+			"type": "basic",
+			"from": {
+				"key_code": "non_us_backslash",
+				"modifiers": {
+					"mandatory": ["left_command", "right_shift"],
+					"optional": ["any"]
+				}
+			},
+			"to": [
+			  { "shell_command": "/usr/local/bin/cliclick p:. > ~/code/sc/cursorfocus/.cliclick_pos.txt" }
+			]
+		  }
+		]
+	  },
+	  {
+		"description": "cmd + § clicks saved position",
+		"manipulators": [
+		  {
+			"type": "basic",
+			"from": {
+				"key_code": "non_us_backslash",
+				"modifiers": {
+					"mandatory": ["right_shift"],
+					"optional": ["any"]
+				}
+			},
+			"to": [
+			  { "shell_command": "coords=$(cat ~/code/sc/cursorfocus/.cliclick_pos.txt); /usr/local/bin/cliclick c:$coords" }
+			]
+		  }
+		]
+	  }
+	]
+  }
+  
