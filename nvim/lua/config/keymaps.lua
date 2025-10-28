@@ -14,6 +14,11 @@ map('x', 'R', function()
   vim.o.hlsearch = true
   vim.cmd('normal! n')
 end, { silent = true, desc = 'Search visual selection' })
+-- Override * to use search
+vim.keymap.set({'n' ,'v', 'x'}, '*', function()
+  vim.fn.setreg('/', '\\<' .. vim.fn.expand('<cword>') .. '\\>')
+  vim.opt.hlsearch = true
+end, { silent = true })
 
 
 -- Terminal mode
