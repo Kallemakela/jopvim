@@ -24,3 +24,31 @@ end, { desc = "Fuzzy search" })
 vim.api.nvim_create_user_command("JopCreateTimeNote", function()
   require("jopvim").create_time_note()
 end, { desc = "Create a new time-stamped Joplin note" })
+
+vim.api.nvim_create_user_command("JopMeta", function()
+  local meta = require("jopvim.metadata").get(0)
+  local encoded = (vim.fn and vim.fn.json_encode and vim.fn.json_encode(meta))
+    or (vim.inspect and vim.inspect(meta))
+    or tostring(meta)
+  print(encoded)
+end, { desc = "Show current buffer Joplin note metadata" })
+
+vim.api.nvim_create_user_command("JopDelete", function()
+  local Note = require("jopvim.note")
+  if not Note.is_note(0) then
+    vim.notify("Jopvim: current buffer is not a note", vim.log.levels.WARN)
+    return
+  end
+  local meta = require("jopvim.metadata").get(0)
+  if not meta.id or meta.id == "" then
+    vim.notify("Jopvim: note id missing", vim.log.levels.WARN)
+    return
+  end
+  local ok, err = pcall(require("jopvim.joplinapi").delete_note, meta.id)
+  if not ok then
+    vim.notify("Jopvim: delete failed - " .. tostring(err), vim.log.levels.ERROR)
+    return
+  end
+  vim.notify("Jopvim: note deleted " .. meta.id)
+  pcall(vim.api.nvim_buf_delete, 0, { force = true })
+end, { desc = "Delete current Joplin note" })

@@ -28,7 +28,10 @@ local vim_mock = {
     nvim_buf_set_name = function() end,
     nvim_create_autocmd = function() end,
     nvim_buf_set_var = function() end,
-    nvim_get_current_buf = function() return 1 end
+    nvim_get_current_buf = function() return 1 end,
+    nvim_win_set_buf = function() end,
+    nvim_win_set_cursor = function() end,
+    nvim_create_buf = function() return 2 end
   },
   bo = {},
   b = {},
@@ -145,6 +148,27 @@ if health_ok then
   end
 else
   print("✗ Health module failed to load")
+end
+
+print("\n6. Testing note metadata seeding...")
+local note_ok, note = pcall(require, "jopvim.note")
+if note_ok then
+  local sample = { id = "id123", title = "Title", body = "Hello" }
+  if note.open_note then
+    local ok_open = pcall(note.open_note, sample)
+    if ok_open then
+      local meta = vim.b[2] and vim.b[2].jopvim_meta or {}
+      if meta.id == sample.id and meta.title == sample.title then
+        print("✓ Metadata set on created buffer")
+      else
+        print("✗ Metadata missing or incorrect on created buffer")
+      end
+    else
+      print("✗ open_note failed to execute")
+    end
+  end
+else
+  print("✗ note module failed to load")
 end
 
 print("\n✓ All tests completed!")

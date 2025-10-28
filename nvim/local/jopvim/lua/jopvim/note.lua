@@ -1,7 +1,16 @@
 -- Note buffer UX: open note in a normal buffer and handle saving back to Joplin
 local JoplinAPI = require("jopvim.joplinapi")
+local Meta = require("jopvim.metadata")
+local Title = require("jopvim.title")
 
 local M = {}
+
+local function clear_existing(name)
+  local existing = vim.fn.bufnr(name)
+  if existing and existing > 0 then
+    pcall(vim.api.nvim_buf_delete, existing, { force = true })
+  end
+end
 
 local function attach_write_handler(bufnr, note_id)
   vim.bo[bufnr].buftype = "acwrite"
@@ -24,6 +33,7 @@ local function attach_write_handler(bufnr, note_id)
       end
       vim.bo[args.buf].modified = false
       vim.notify("Joplin note saved: " .. (res.id or id))
+      Title.maybe_update_title(args.buf, body)
     end,
   })
 end
@@ -47,9 +57,11 @@ local function create_and_show_note_buffer(id, title, body)
   vim.bo[bufnr].buftype = "acwrite"
   vim.bo[bufnr].bufhidden = "hide"
   local name = string.format("joplin://%s %s", id or "", title or "Untitled")
+  clear_existing(name)
   vim.api.nvim_buf_set_name(bufnr, name)
   vim.bo[bufnr].undolevels = old_undolevels
   vim.bo[bufnr].modified = false
+  Meta.set(bufnr, { id = id, title = title })
   return bufnr
 end
 
@@ -67,9 +79,11 @@ local function populate_current_buffer(id, title, body)
   vim.bo[bufnr].buftype = "acwrite"
   vim.bo[bufnr].bufhidden = "hide"
   local name = string.format("joplin://%s %s", id or "", title or "Untitled")
+  clear_existing(name)
   vim.api.nvim_buf_set_name(bufnr, name)
   vim.bo[bufnr].undolevels = old_undolevels
   vim.bo[bufnr].modified = false
+  Meta.set(bufnr, { id = id, title = title })
   return bufnr
 end
 
@@ -102,6 +116,15 @@ function M.refresh_note_inplace(id)
   local note = JoplinAPI.get_note(id)
   M.open_note(note)
   return note
+end
+
+function M.is_note(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  local name = vim.api.nvim_buf_get_name(bufnr)
+  if type(name) == "string" and name:match("^joplin://") then return true end
+  local meta = Meta.get(bufnr)
+  if meta and (meta.id or meta.title) then return true end
+  return false
 end
 
 return M

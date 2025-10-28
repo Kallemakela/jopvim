@@ -41,14 +41,12 @@ end
 
 function M.create_uncategorized_note()
   local folder_id = Config.get().uncategorized_folder_id
-  local bufnr = vim.api.nvim_get_current_buf()
-  local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
-  local ok, res = pcall(Buffer.create_from_buffer, folder_id, content)
+  local ok, res = pcall(Buffer.create_with_title, folder_id, "", "New note")
   if not ok then
     vim.notify("Joplin: " .. tostring(res), vim.log.levels.ERROR)
     return
   end
-  Note.open_note_in_current_buffer(res)
+  Note.open_note(res)
   vim.notify("Created uncategorized note")
 end
 

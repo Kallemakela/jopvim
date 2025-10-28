@@ -31,7 +31,10 @@ local vim_mock = {
     nvim_buf_set_lines = function() end,
     nvim_buf_set_name = function() end,
     nvim_create_autocmd = function() end,
-    nvim_buf_set_var = function() end
+    nvim_buf_set_var = function() end,
+    nvim_win_set_buf = function() end,
+    nvim_win_set_cursor = function() end,
+    nvim_create_buf = function() return 2 end
   },
   bo = {},
   b = {},

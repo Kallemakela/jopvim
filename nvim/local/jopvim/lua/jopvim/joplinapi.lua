@@ -122,4 +122,14 @@ function M.search_notes(opts)
   return items
 end
 
+function M.delete_note(id)
+  local cfg = config()
+  local url = string.format("%s/notes/%s?token=%s", cfg.joplin_url, id, url_encode(cfg.joplin_token or ""))
+  local status, resp_body, err = http.request("DELETE", url, { ["Accept"] = "application/json" }, nil)
+  if status ~= 0 then
+    error("Joplin delete_note failed: " .. (err or resp_body or tostring(status)))
+  end
+  return true
+end
+
 return M
