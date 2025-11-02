@@ -28,3 +28,5 @@ xm1/
 yarn/
 .DS_Store
 
+zsh/.zsh_history
+zsh/.zcompdump
