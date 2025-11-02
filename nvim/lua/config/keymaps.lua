@@ -3,10 +3,14 @@ local map = vim.keymap.set
 -- Basic
 map({ 'n', 'v', 'x' }, 'J', '}')
 map({ 'n', 'v', 'x' }, 'K', '{')
+map({ 'n', 'v', 'x' }, ';', ':')
 map({ 'n', 'v', 'x' }, '<leader>x', '<cmd>bd<cr>')
+map({ 'n', 'v', 'x' }, '<leader>n', '<cmd>enew<cr>')
+map({ 'n', 'v', 'x' }, '<leader>w', '<cmd>write<cr>')
+map({ 'n', 'v', 'x' }, '<leader>qq', '<cmd>quit<cr>')
 
 -- Search
-map('x', 'R', function()
+map('x', '*', function()
   vim.cmd('normal! "zy')
   local text = vim.fn.getreg('z')
   text = text:gsub('\\', '\\\\'):gsub('\n', '\\n')
@@ -14,12 +18,10 @@ map('x', 'R', function()
   vim.o.hlsearch = true
   vim.cmd('normal! n')
 end, { silent = true, desc = 'Search visual selection' })
--- Override * to use search
-vim.keymap.set({'n' ,'v', 'x'}, '*', function()
+vim.keymap.set('n', '*', function()
   vim.fn.setreg('/', '\\<' .. vim.fn.expand('<cword>') .. '\\>')
   vim.opt.hlsearch = true
 end, { silent = true })
-
 
 -- Terminal mode
 map('t', '<Esc>', [[<C-\><C-n>]], { noremap = true, silent = true })
@@ -40,9 +42,10 @@ map({"n", "v"}, "gt", vim.lsp.buf.type_definition, { buffer = bufnr, silent = tr
 map({"n", "v"}, "<C-h>", vim.lsp.buf.hover, { buffer = bufnr, silent = true })
 
 -- Telescope
-map('n', '<leader>f', "<cmd>Telescope find_files<cr>")
-map('n', '<leader>b', "<cmd>Telescope buffers<cr>")
-map('n', '<leader>op', "<cmd>Telescope commands<cr>")
+map('n', '<leader>fj', "<cmd>Telescope find_files<cr>")
+map('n', '<leader>fk', "<cmd>Telescope buffers<cr>")
+map('n', '<leader>f[', "<cmd>Telescope commands<cr>")
+map('n', '<leader>fl', "<cmd>Telescope live_grep<cr>")
 
 -- Runner
 map("n", "<leader>lc", "<cmd>CodeRun<cr>", { desc = "Run", silent = true })
