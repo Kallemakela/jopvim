@@ -7,6 +7,7 @@ A Neovim plugin for working with Joplin notes.
 - `:JopCreateCategorizedNote` - Create a categorized Joplin note from current buffer
 - `:JopOpen` - Open a Joplin note
 - `:JopSearch` - Search and open a Joplin note (requires Telescope)
+- `:JopDelete` - Delete the currently open Joplin note
 
 ## Setup
 
