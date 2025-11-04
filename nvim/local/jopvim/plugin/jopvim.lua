@@ -52,3 +52,11 @@ vim.api.nvim_create_user_command("JopDelete", function()
   vim.notify("Jopvim: note deleted " .. meta.id)
   pcall(vim.api.nvim_buf_delete, 0, { force = true })
 end, { desc = "Delete current Joplin note" })
+
+vim.api.nvim_create_user_command("JopCreateLink", function()
+  require("jopvim").create_link()
+end, { desc = "Create a link to a Joplin note" })
+
+vim.api.nvim_create_user_command("JopOpenLink", function()
+  require("jopvim").open_link()
+end, { desc = "Open the Joplin note link at cursor" })

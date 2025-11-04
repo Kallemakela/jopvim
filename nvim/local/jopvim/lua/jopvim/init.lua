@@ -4,6 +4,8 @@ local Categorize = require("jopvim.categorize")
 local Buffer = require("jopvim.buffer")
 local Note = require("jopvim.note")
 local JoplinAPI = require("jopvim.joplinapi")
+local Telescope = require("jopvim.telescope")
+local Link = require("jopvim.link")
 
 local M = {}
 
@@ -11,24 +13,11 @@ function M.setup(opts)
   Config.setup(opts or {})
 end
 
-local function choose_category(categories, on_choice)
-  local items = {}
-  for _, c in ipairs(categories) do
-    table.insert(items, { c = c, label = string.format("%s  (%s)", c.title or c.id, c.score or "0") })
-  end
-  vim.ui.select(items, {
-    prompt = "Select Joplin Category",
-    format_item = function(item) return item.label end,
-  }, function(choice)
-    if choice then on_choice(choice.c) end
-  end)
-end
-
 function M.create_categorized_note()
   local categories = Categorize.get_sorted_categories()
   local bufnr = vim.api.nvim_get_current_buf()
   local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
-  choose_category(categories, function(c)
+  Telescope.choose_category(categories, function(c)
     local ok, res = pcall(Buffer.create_from_buffer, c.id, content)
     if not ok then
       vim.notify("Joplin: " .. res, vim.log.levels.ERROR)
@@ -72,6 +61,14 @@ function M.create_time_note()
   end
   Note.open_note(res)
   vim.notify("Created time note: " .. title)
+end
+
+function M.create_link()
+  Link.create_link()
+end
+
+function M.open_link()
+  Link.open_link()
 end
 
 return M

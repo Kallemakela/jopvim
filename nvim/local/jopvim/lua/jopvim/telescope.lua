@@ -227,6 +227,40 @@ function M.fuzzy()
   }):find()
 end
 
+function M.choose_category(categories, on_choice)
+  local results = {}
+  for _, c in ipairs(categories) do
+    local score = tonumber(c.score) or 0
+    local score_str = string.format("%.1f", score * 100)
+    table.insert(results, {
+      value = c,
+      ordinal = (c.title or c.id or ""),
+      display = string.format("%s  (%s)", c.title or c.id, score_str),
+    })
+  end
+  
+  pickers.new({}, {
+    prompt_title = "Select Joplin Category",
+    finder = finders.new_table({
+      results = results,
+      entry_maker = function(entry)
+        return entry
+      end,
+    }),
+    sorter = conf.generic_sorter({}),
+    attach_mappings = function(bufnr)
+      actions.select_default:replace(function()
+        actions.close(bufnr)
+        local entry = action_state.get_selected_entry()
+        if entry and entry.value then
+          on_choice(entry.value)
+        end
+      end)
+      return true
+    end,
+  }):find()
+end
+
 return M
 
 

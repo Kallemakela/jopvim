@@ -12,6 +12,12 @@ local function clear_existing(name)
   end
 end
 
+local function attach_keybinds(bufnr)
+  local Link = require("jopvim.link")
+  vim.keymap.set("n", "gd", Link.open_link, { buffer = bufnr, desc = "Open link at cursor" })
+  vim.keymap.set("n", "<leader>l", Link.create_link, { buffer = bufnr, desc = "Create link" })
+end
+
 local function attach_write_handler(bufnr, note_id)
   vim.bo[bufnr].buftype = "acwrite"
   vim.bo[bufnr].bufhidden = "hide"
@@ -32,7 +38,6 @@ local function attach_write_handler(bufnr, note_id)
         return
       end
       vim.bo[args.buf].modified = false
-      vim.notify("Joplin note saved: " .. (res.id or id))
       Title.maybe_update_title(args.buf, body)
     end,
   })
@@ -43,13 +48,11 @@ local function ensure_lines(lines)
   return lines
 end
 
-local function create_and_show_note_buffer(id, title, body)
+local function configure_note_buffer(bufnr, id, title, body)
   local lines = ensure_lines(vim.split(body or "", "\n", { plain = true }))
-  local bufnr = vim.api.nvim_create_buf(true, false)
   local old_undolevels = vim.bo[bufnr].undolevels
   vim.bo[bufnr].undolevels = -1
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-  vim.api.nvim_win_set_buf(0, bufnr)
   vim.api.nvim_win_set_cursor(0, { 1, 0 })
   vim.bo[bufnr].filetype = "markdown"
   vim.bo[bufnr].modifiable = true
@@ -62,29 +65,23 @@ local function create_and_show_note_buffer(id, title, body)
   vim.bo[bufnr].undolevels = old_undolevels
   vim.bo[bufnr].modified = false
   Meta.set(bufnr, { id = id, title = title })
+  if id and id ~= "" then
+    attach_write_handler(bufnr, id)
+    attach_keybinds(bufnr)
+  end
   return bufnr
+end
+
+local function create_and_show_note_buffer(id, title, body)
+  local bufnr = vim.api.nvim_create_buf(true, false)
+  vim.api.nvim_win_set_buf(0, bufnr)
+  return configure_note_buffer(bufnr, id, title, body)
 end
 
 local function populate_current_buffer(id, title, body)
   local bufnr = vim.api.nvim_get_current_buf()
-  local lines = ensure_lines(vim.split(body or "", "\n", { plain = true }))
-  local old_undolevels = vim.bo[bufnr].undolevels
-  vim.bo[bufnr].undolevels = -1
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-  vim.api.nvim_win_set_cursor(0, { 1, 0 })
-  vim.bo[bufnr].filetype = "markdown"
-  vim.bo[bufnr].modifiable = true
-  vim.bo[bufnr].readonly = false
-  vim.bo[bufnr].buftype = "acwrite"
-  vim.bo[bufnr].bufhidden = "hide"
-  local name = string.format("joplin://%s %s", id or "", title or "Untitled")
-  clear_existing(name)
-  vim.api.nvim_buf_set_name(bufnr, name)
-  vim.bo[bufnr].undolevels = old_undolevels
-  vim.bo[bufnr].modified = false
-  Meta.set(bufnr, { id = id, title = title })
-  return bufnr
+  return configure_note_buffer(bufnr, id, title, body)
 end
 
 function M.open_note(note)
@@ -92,7 +89,6 @@ function M.open_note(note)
   local id = note.id or ""
   local body = note.body or ""
   local bufnr = create_and_show_note_buffer(id, title, body)
-  attach_write_handler(bufnr, id)
   vim.bo[bufnr].modified = false
 end
 
@@ -101,7 +97,6 @@ function M.open_note_in_current_buffer(note)
   local id = note.id or ""
   local body = note.body or ""
   local bufnr = populate_current_buffer(id, title, body)
-  attach_write_handler(bufnr, id)
   vim.bo[bufnr].modified = false
 end
 
