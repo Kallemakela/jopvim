@@ -1,6 +1,20 @@
 # jopvim
 
-A Neovim plugin for working with Joplin notes.
+A Neovim plugin for working with Joplin notes. 
+
+## Features
+
+- Automatically categorize notes based on the content
+  - Uses a LM to embed content and KNN to find the closest categories
+- Multiple search modes:
+  - Telescope default fuzzy search on titles
+  - Fuzzy search from body content
+  - Search closest notes by embedding similarity
+- All other Joplin features, most importantly:
+  - Free sync if you have any cloud storage account
+  - A synced phone app
+  - Links
+  - Tags
 
 ## Commands
 

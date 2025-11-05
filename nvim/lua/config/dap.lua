@@ -1,7 +1,3 @@
-vim.pack.add({
-  { src = 'https://github.com/nvim-neotest/nvim-nio' },
-  { src = 'https://github.com/rcarriga/nvim-dap-ui' },
-})
 local dapui = require("dapui")
 local dap = require('dap')
 dapui.setup()
