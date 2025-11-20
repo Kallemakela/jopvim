@@ -18,7 +18,7 @@ local M = {}
 local format_label = Shared.format_label
 
 function M.search()
-  ListViewer.open({
+  PreviewViewer.open({
     prompt_title = "Joplin Search",
     dynamic_fn = function(prompt)
       if not prompt or #prompt < 2 then return {} end
@@ -40,6 +40,21 @@ function M.search()
       return results
     end,
     sorter = conf.generic_sorter({}),
+    layout_strategy = "horizontal",
+    layout_config = { width = 0.9, preview_width = 0.55, preview_cutoff = 0 },
+    get_preview_lines = function(entry)
+      if not entry or not entry.value or not entry.value.id then return {} end
+      local note = entry.value
+      if note.body then
+        return vim.split(note.body, "\n", { plain = true })
+      end
+      local ok, full = pcall(JoplinAPI.get_note, note.id)
+      if ok and full and full.body then
+        note.body = full.body
+        return vim.split(full.body, "\n", { plain = true })
+      end
+      return {}
+    end,
     on_select = Shared.open_selected,
   })
 end
@@ -100,10 +115,27 @@ function M.open()
     return string.format("Joplin Notes (Page %d) - <C-n> for next page", page_num)
   end
   
-  ListViewer.open({
+  PreviewViewer.open({
     prompt_title = get_prompt_title(),
-    results = create_results(),
+    dynamic_fn = function()
+      return create_results()
+    end,
     sorter = conf.generic_sorter({}),
+    layout_strategy = "horizontal",
+    layout_config = { width = 0.9, preview_width = 0.55, preview_cutoff = 0 },
+    get_preview_lines = function(entry)
+      if not entry or not entry.value or not entry.value.id then return {} end
+      local note = entry.value
+      if note.body then
+        return vim.split(note.body, "\n", { plain = true })
+      end
+      local ok, full = pcall(JoplinAPI.get_note, note.id)
+      if ok and full and full.body then
+        note.body = full.body
+        return vim.split(full.body, "\n", { plain = true })
+      end
+      return {}
+    end,
     on_select = Shared.open_selected,
     attach_mappings_ext = function(bufnr)
       local function load_next_page()
@@ -115,12 +147,9 @@ function M.open()
         if not fetch_page() then return end
         local picker = action_state.get_current_picker(bufnr)
         if picker then
-          picker:refresh(finders.new_table({
-            results = create_results(),
-            entry_maker = function(entry)
-              return entry
-            end,
-          }), { reset_prompt = false })
+          picker:refresh(Shared.new_dynamic_finder(function()
+            return create_results()
+          end), { reset_prompt = false })
           picker.prompt_title = get_prompt_title()
         end
       end
