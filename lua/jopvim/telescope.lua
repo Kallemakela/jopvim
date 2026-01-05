@@ -60,13 +60,14 @@ function M.search()
 end
 
 function M.open()
-  local page_size = 20
+  local page_size = 40
   local state = {
     offset = 0,
     notes = {},
-    has_more = true
+    has_more = true,
+    current_prompt = ""
   }
-  
+
   local function fetch_page()
     local page_num = math.floor(state.offset / page_size) + 1
     local ok, notes = pcall(JoplinAPI.get_notes, {
@@ -75,22 +76,22 @@ function M.open()
       order_by = "updated_time",
       order_dir = "DESC"
     })
-    
+
     if not ok then
       vim.notify("Failed to fetch notes: " .. tostring(notes), vim.log.levels.ERROR)
       return false
     end
-    
+
     if not notes or #notes == 0 then
       state.has_more = false
       return true
     end
-    
+
     state.notes = notes
     state.has_more = #notes == page_size
     return true
   end
-  
+
   local function create_results()
     local results = {}
     for _, note in ipairs(state.notes) do
@@ -102,23 +103,47 @@ function M.open()
     end
     return results
   end
-  
+
   if not fetch_page() then return end
-  
+
   if #state.notes == 0 then
     vim.notify("No notes found", vim.log.levels.INFO)
     return
   end
-  
+
   local function get_prompt_title()
     local page_num = math.floor(state.offset / page_size) + 1
-    return string.format("Joplin Notes (Page %d) - <C-n> for next page", page_num)
+    if state.current_prompt and #state.current_prompt >= 2 then
+      return string.format("Joplin Search: %s", state.current_prompt)
+    else
+      return string.format("Joplin Notes (Page %d) - <C-p> prev <C-n> next", page_num)
+    end
   end
-  
+
   PreviewViewer.open({
     prompt_title = get_prompt_title(),
-    dynamic_fn = function()
-      return create_results()
+    dynamic_fn = function(prompt)
+      state.current_prompt = prompt
+      if prompt and #prompt >= 2 then
+        local ok, notes = pcall(JoplinAPI.search_notes, {
+          query = prompt,
+          limit = 50,
+          order_by = "updated_time",
+          order_dir = "DESC",
+        })
+        if not ok or type(notes) ~= "table" then return {} end
+        local results = {}
+        for _, n in ipairs(notes) do
+          table.insert(results, {
+            value = n,
+            ordinal = (n.title or n.id or ""),
+            display = format_label(n),
+          })
+        end
+        return results
+      else
+        return create_results()
+      end
     end,
     sorter = conf.generic_sorter({}),
     layout_strategy = "horizontal",
@@ -137,8 +162,12 @@ function M.open()
       return {}
     end,
     on_select = Shared.open_selected,
-    attach_mappings_ext = function(bufnr)
+    attach_mappings_ext = function(bufnr, map)
       local function load_next_page()
+        if state.current_prompt and #state.current_prompt >= 2 then
+          vim.notify("Clear search to paginate", vim.log.levels.INFO)
+          return
+        end
         if not state.has_more then
           vim.notify("No more notes to load", vim.log.levels.INFO)
           return
@@ -153,7 +182,30 @@ function M.open()
           picker.prompt_title = get_prompt_title()
         end
       end
-      vim.keymap.set("n", "<C-n>", load_next_page, { buffer = bufnr, desc = "Load next page" })
+
+      local function load_prev_page()
+        if state.current_prompt and #state.current_prompt >= 2 then
+          vim.notify("Clear search to paginate", vim.log.levels.INFO)
+          return
+        end
+        if state.offset == 0 then
+          vim.notify("Already on first page", vim.log.levels.INFO)
+          return
+        end
+        state.offset = state.offset - page_size
+        if state.offset < 0 then state.offset = 0 end
+        if not fetch_page() then return end
+        local picker = action_state.get_current_picker(bufnr)
+        if picker then
+          picker:refresh(Shared.new_dynamic_finder(function()
+            return create_results()
+          end), { reset_prompt = false })
+          picker.prompt_title = get_prompt_title()
+        end
+      end
+
+      actions.move_selection_next:replace(load_next_page)
+      actions.move_selection_previous:replace(load_prev_page)
     end,
   })
 end

@@ -43,10 +43,6 @@ function M.open_notes()
   require("jopvim.telescope").open()
 end
 
-function M.search_notes()
-  require("jopvim.telescope").search()
-end
-
 function M.fuzzy_notes()
   require("jopvim.telescope").fuzzy()
 end

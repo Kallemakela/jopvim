@@ -11,11 +11,7 @@ end, { desc = "Create Joplin note in uncategorized folder" })
 
 vim.api.nvim_create_user_command("JopOpen", function()
   require("jopvim").open_notes()
-end, { desc = "Open a Joplin note" })
-
-vim.api.nvim_create_user_command("JopSearch", function()
-  require("jopvim").search_notes()
-end, { desc = "Search and open a Joplin note" })
+end, { desc = "Open or search Joplin notes" })
 
 vim.api.nvim_create_user_command("JopFuzzySearch", function()
   require("jopvim").fuzzy_notes()

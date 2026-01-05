@@ -79,7 +79,7 @@ function M.new_picker(opts)
       map("i", "<C-d>", M.toggle_todo_selected)
       map("n", "<C-d>", M.toggle_todo_selected)
       if opts.attach_mappings_ext then
-        opts.attach_mappings_ext(bufnr)
+        opts.attach_mappings_ext(bufnr, map)
       end
       return true
     end,

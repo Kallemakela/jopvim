@@ -2,13 +2,13 @@
 
 ## Yes
 
-- [ ] integrate search and open
 - [ ] fix search problem
 - [ ] sem sim search
 - [ ] readme updates
   - [ ] umap
     - [ ] add tags (but i have none)
-- [ ] show todo state
+- [ ] todo view
+  - probably best done by adding filters and adding a todo filter
 - [ ] live grep?
 
 ## Hard
@@ -20,7 +20,8 @@
 
 ## Done
 
-- [ ] todo view
+- [x] integrate search and open
+- [x] show todo state
 - [x] uncategorized creation
 - [x] timenote creation
 
