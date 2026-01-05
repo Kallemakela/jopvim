@@ -109,7 +109,7 @@ function M.search_notes(opts)
   if opts and opts.page then table.insert(params, "page=" .. tostring(opts.page)) end
   if opts and opts.order_by then table.insert(params, "order_by=" .. url_encode(opts.order_by)) end
   if opts and opts.order_dir then table.insert(params, "order_dir=" .. url_encode(opts.order_dir)) end
-  table.insert(params, "fields=" .. url_encode("id,title,updated_time,is_todo,todo_due,todo_completed"))
+  table.insert(params, "fields=" .. url_encode("id,title,body,updated_time,is_todo,todo_due,todo_completed"))
   local url = string.format("%s/search?token=%s&%s", cfg.joplin_url, url_encode(cfg.joplin_token or ""), table.concat(params, "&"))
   local status, body, err = http.request("GET", url, { ["Accept"] = "application/json" }, nil)
   if status ~= 0 then

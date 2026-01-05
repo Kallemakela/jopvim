@@ -18,8 +18,7 @@ function M.format_label(note)
     checkbox = ""
   end
   local title = note.title or note.id or "Untitled"
-  local updated = note.updated_time and (" (" .. tostring(note.updated_time) .. ")") or ""
-  return checkbox .. title .. updated
+  return checkbox .. title
 end
 
 function M.make_entry(note)

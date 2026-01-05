@@ -33,7 +33,7 @@ function M.search()
       for _, n in ipairs(notes) do
         table.insert(results, {
           value = n,
-          ordinal = (n.title or n.id or ""),
+          ordinal = ((n.title or n.id or "") .. " " .. (n.body or "")),
           display = format_label(n),
         })
       end
@@ -60,90 +60,55 @@ function M.search()
 end
 
 function M.open()
-  local page_size = 40
   local state = {
-    offset = 0,
-    notes = {},
-    has_more = true,
+    page = 1,
     current_prompt = ""
   }
 
-  local function fetch_page()
-    local page_num = math.floor(state.offset / page_size) + 1
-    local ok, notes = pcall(JoplinAPI.get_notes, {
-      limit = page_size,
-      page = page_num,
-      order_by = "updated_time",
-      order_dir = "DESC"
-    })
-
-    if not ok then
-      vim.notify("Failed to fetch notes: " .. tostring(notes), vim.log.levels.ERROR)
-      return false
-    end
-
-    if not notes or #notes == 0 then
-      state.has_more = false
-      return true
-    end
-
-    state.notes = notes
-    state.has_more = #notes == page_size
-    return true
-  end
-
-  local function create_results()
-    local results = {}
-    for _, note in ipairs(state.notes) do
-      table.insert(results, {
-        value = note,
-        ordinal = (note.title or note.id or ""),
-        display = format_label(note),
-      })
-    end
-    return results
-  end
-
-  if not fetch_page() then return end
-
-  if #state.notes == 0 then
-    vim.notify("No notes found", vim.log.levels.INFO)
-    return
-  end
-
   local function get_prompt_title()
-    local page_num = math.floor(state.offset / page_size) + 1
-    if state.current_prompt and #state.current_prompt >= 2 then
-      return string.format("Joplin Search: %s", state.current_prompt)
+    if state.current_prompt ~= "" then
+      return string.format("Joplin Search: %s (Page %d) - <C-p> prev <C-n> next", state.current_prompt, state.page)
     else
-      return string.format("Joplin Notes (Page %d) - <C-p> prev <C-n> next", page_num)
+      return string.format("Joplin Notes (Page %d) - <C-p> prev <C-n> next", state.page)
     end
   end
 
   PreviewViewer.open({
     prompt_title = get_prompt_title(),
     dynamic_fn = function(prompt)
-      state.current_prompt = prompt
-      if prompt and #prompt >= 2 then
-        local ok, notes = pcall(JoplinAPI.search_notes, {
+      if prompt ~= state.current_prompt then
+        state.page = 1
+        state.current_prompt = prompt
+      end
+
+      local ok, notes
+      if prompt ~= "" then
+        ok, notes = pcall(JoplinAPI.search_notes, {
           query = prompt,
           limit = 50,
+          page = state.page,
           order_by = "updated_time",
           order_dir = "DESC",
         })
-        if not ok or type(notes) ~= "table" then return {} end
-        local results = {}
-        for _, n in ipairs(notes) do
-          table.insert(results, {
-            value = n,
-            ordinal = (n.title or n.id or ""),
-            display = format_label(n),
-          })
-        end
-        return results
       else
-        return create_results()
+        ok, notes = pcall(JoplinAPI.get_notes, {
+          limit = 40,
+          page = state.page,
+          order_by = "updated_time",
+          order_dir = "DESC"
+        })
       end
+
+      if not ok or type(notes) ~= "table" then return {} end
+      local results = {}
+      for _, n in ipairs(notes) do
+        table.insert(results, {
+          value = n,
+          ordinal = ((n.title or n.id or "") .. " " .. (n.body or "")),
+          display = format_label(n),
+        })
+      end
+      return results
     end,
     sorter = conf.generic_sorter({}),
     layout_strategy = "horizontal",
@@ -164,48 +129,27 @@ function M.open()
     on_select = Shared.open_selected,
     attach_mappings_ext = function(bufnr, map)
       local function load_next_page()
-        if state.current_prompt and #state.current_prompt >= 2 then
-          vim.notify("Clear search to paginate", vim.log.levels.INFO)
-          return
-        end
-        if not state.has_more then
-          vim.notify("No more notes to load", vim.log.levels.INFO)
-          return
-        end
-        state.offset = state.offset + page_size
-        if not fetch_page() then return end
+        state.page = state.page + 1
         local picker = action_state.get_current_picker(bufnr)
         if picker then
-          picker:refresh(Shared.new_dynamic_finder(function()
-            return create_results()
-          end), { reset_prompt = false })
+          picker:refresh()
           picker.prompt_title = get_prompt_title()
         end
       end
 
       local function load_prev_page()
-        if state.current_prompt and #state.current_prompt >= 2 then
-          vim.notify("Clear search to paginate", vim.log.levels.INFO)
-          return
-        end
-        if state.offset == 0 then
-          vim.notify("Already on first page", vim.log.levels.INFO)
-          return
-        end
-        state.offset = state.offset - page_size
-        if state.offset < 0 then state.offset = 0 end
-        if not fetch_page() then return end
+        state.page = math.max(1, state.page - 1)
         local picker = action_state.get_current_picker(bufnr)
         if picker then
-          picker:refresh(Shared.new_dynamic_finder(function()
-            return create_results()
-          end), { reset_prompt = false })
+          picker:refresh()
           picker.prompt_title = get_prompt_title()
         end
       end
 
-      actions.move_selection_next:replace(load_next_page)
-      actions.move_selection_previous:replace(load_prev_page)
+      map("n", "<C-n>", load_next_page)
+      map("i", "<C-n>", load_next_page)
+      map("n", "<C-p>", load_prev_page)
+      map("i", "<C-p>", load_prev_page)
     end,
   })
 end
