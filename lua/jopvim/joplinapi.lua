@@ -35,7 +35,7 @@ function M.get_note(id)
   local cfg = config()
   local base = string.format("%s/notes/%s?token=%s", cfg.joplin_url, id, url_encode(cfg.joplin_token or ""))
   -- request body explicitly to ensure content is returned
-  local url = base .. "&fields=" .. url_encode("id,title,body,parent_id,updated_time,created_time")
+  local url = base .. "&fields=" .. url_encode("id,title,body,parent_id,updated_time,created_time,is_todo,todo_due,todo_completed")
   local status, resp_body, err = http.request("GET", url, { ["Accept"] = "application/json" }, nil)
   if status ~= 0 then
     error("Joplin get_note failed: " .. (err or resp_body or tostring(status)))
@@ -77,7 +77,7 @@ function M.get_notes(options)
   
   local query_string = table.concat(params, "&")
   local url = string.format("%s/notes?token=%s", cfg.joplin_url, url_encode(cfg.joplin_token or ""))
-  table.insert(params, "fields=" .. url_encode("id,title,updated_time"))
+  table.insert(params, "fields=" .. url_encode("id,title,updated_time,is_todo,todo_due,todo_completed"))
   if query_string ~= "" then
     url = url .. "&" .. query_string
   end
@@ -109,7 +109,7 @@ function M.search_notes(opts)
   if opts and opts.page then table.insert(params, "page=" .. tostring(opts.page)) end
   if opts and opts.order_by then table.insert(params, "order_by=" .. url_encode(opts.order_by)) end
   if opts and opts.order_dir then table.insert(params, "order_dir=" .. url_encode(opts.order_dir)) end
-  table.insert(params, "fields=" .. url_encode("id,title,updated_time"))
+  table.insert(params, "fields=" .. url_encode("id,title,updated_time,is_todo,todo_due,todo_completed"))
   local url = string.format("%s/search?token=%s&%s", cfg.joplin_url, url_encode(cfg.joplin_token or ""), table.concat(params, "&"))
   local status, body, err = http.request("GET", url, { ["Accept"] = "application/json" }, nil)
   if status ~= 0 then
@@ -130,6 +130,15 @@ function M.delete_note(id)
     error("Joplin delete_note failed: " .. (err or resp_body or tostring(status)))
   end
   return true
+end
+
+function M.toggle_todo(id)
+  local note = M.get_note(id)
+  if not note or note.is_todo ~= 1 then
+    return note
+  end
+  local new_completed = note.todo_completed == 0 and os.time() or 0
+  return M.update_note(id, { todo_completed = new_completed })
 end
 
 return M
