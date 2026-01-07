@@ -58,68 +58,44 @@ function M.update_note(id, fields)
   return data
 end
 
-function M.get_notes(options)
-  local cfg = config()
+local function build_query_params(opts, extra_fields)
   local params = {}
-  
-  if options and options.limit then
-    table.insert(params, "limit=" .. tostring(options.limit))
+  if opts and opts.query then table.insert(params, "query=" .. url_encode(opts.query)) end
+  if extra_fields then
+    for _, field in ipairs(extra_fields) do
+      table.insert(params, field)
+    end
   end
-  if options and options.page then
-    table.insert(params, "page=" .. tostring(options.page))
-  end
-  if options and options.order_by then
-    table.insert(params, "order_by=" .. url_encode(options.order_by))
-  end
-  if options and options.order_dir then
-    table.insert(params, "order_dir=" .. url_encode(options.order_dir))
-  end
-  
-  local query_string = table.concat(params, "&")
-  local url = string.format("%s/notes?token=%s", cfg.joplin_url, url_encode(cfg.joplin_token or ""))
-  table.insert(params, "fields=" .. url_encode("id,title,updated_time,is_todo,todo_due,todo_completed"))
-  if query_string ~= "" then
-    url = url .. "&" .. query_string
-  end
-  
-  local status, resp_body, err = http.request("GET", url, { ["Accept"] = "application/json" }, nil)
-  if status ~= 0 then
-    error("Joplin get_notes failed: " .. (err or resp_body or tostring(status)))
-  end
-  local data = utils.decode_json(resp_body)
-  if type(data) ~= "table" then
-    error("Unexpected Joplin response")
-  end
-  local items = data.items or data
-  if type(items) ~= "table" then
-    error("Unexpected Joplin response: missing items")
-  end
-  return items
-end
-
-function M.search_notes(opts)
-  local cfg = config()
-  local q = opts and opts.query or ""
-  if q == "" then return {} end
-  local params = {
-    "query=" .. url_encode(q),
-    "type=note",
-  }
   if opts and opts.limit then table.insert(params, "limit=" .. tostring(opts.limit)) end
   if opts and opts.page then table.insert(params, "page=" .. tostring(opts.page)) end
   if opts and opts.order_by then table.insert(params, "order_by=" .. url_encode(opts.order_by)) end
   if opts and opts.order_dir then table.insert(params, "order_dir=" .. url_encode(opts.order_dir)) end
   table.insert(params, "fields=" .. url_encode("id,title,body,updated_time,is_todo,todo_due,todo_completed"))
-  local url = string.format("%s/search?token=%s&%s", cfg.joplin_url, url_encode(cfg.joplin_token or ""), table.concat(params, "&"))
+  return params
+end
+
+local function fetch_notes(endpoint, opts, extra_fields)
+  local cfg = config()
+  if opts and opts.query == "" then return {} end
+  local params = build_query_params(opts, extra_fields)
+  local url = string.format("%s%s?token=%s&%s", cfg.joplin_url, endpoint, url_encode(cfg.joplin_token or ""), table.concat(params, "&"))
   local status, body, err = http.request("GET", url, { ["Accept"] = "application/json" }, nil)
   if status ~= 0 then
-    error("Joplin search_notes failed: " .. (err or body or tostring(status)))
+    error("Joplin request failed: " .. (err or body or tostring(status)))
   end
   local data = utils.decode_json(body)
   if type(data) ~= "table" then error("Unexpected Joplin response") end
   local items = data.items or data
   if type(items) ~= "table" then error("Unexpected Joplin response: missing items") end
   return items
+end
+
+function M.get_notes(options)
+  return fetch_notes("/notes", options)
+end
+
+function M.search_notes(opts)
+  return fetch_notes("/search", opts, { "type=note" })
 end
 
 function M.delete_note(id)
