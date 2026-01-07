@@ -11,6 +11,7 @@ local M = {}
 
 function M.setup(opts)
   Config.setup(opts or {})
+  require("jopvim.session").setup()
 end
 
 function M.create_categorized_note()

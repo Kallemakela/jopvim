@@ -63,7 +63,7 @@ local function configure_note_buffer(bufnr, id, title, body)
 	vim.bo[bufnr].readonly = false
 	vim.bo[bufnr].buftype = "acwrite"
 	vim.bo[bufnr].bufhidden = "hide"
-	local name = title or "Untitled"
+	local name = string.format("%s | Joplin [%s]", title or "Untitled", id)
 	clear_existing(name)
 	vim.api.nvim_buf_set_name(bufnr, name)
 	vim.bo[bufnr].undolevels = old_undolevels
@@ -84,6 +84,7 @@ end
 
 local function populate_current_buffer(id, title, body)
 	local bufnr = vim.api.nvim_get_current_buf()
+	vim.bo[bufnr].modifiable = true
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
 	return configure_note_buffer(bufnr, id, title, body)
 end
@@ -120,7 +121,7 @@ end
 function M.is_note(bufnr)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	local name = vim.api.nvim_buf_get_name(bufnr)
-	if type(name) == "string" and name:match("^joplin://") then
+	if type(name) == "string" and name:match(" | Joplin %[%w+%]$") then
 		return true
 	end
 	local meta = Meta.get(bufnr)
