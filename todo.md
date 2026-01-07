@@ -2,7 +2,6 @@
 
 ## Yes
 
-- [ ] session restore
 - [ ] sem sim search
 - [ ] readme updates
   - [ ] umap
@@ -19,6 +18,8 @@
 
 ## Done
 
+- [x] filters
+- [x] session restore
 - [x] marksman fix
 - [x] note name fix
 - [x] fix search problem
