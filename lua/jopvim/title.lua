@@ -26,7 +26,7 @@ function M.finalize(bufnr, new_title)
   meta.title = new_title
   local id = meta.id or ""
   if id ~= "" then
-    local name = string.format("joplin://%s %s", id, new_title or "")
+    local name = string.format("joplin://%s", new_title or "")
     local existing = vim.fn.bufnr(name)
     if existing and existing > 0 and existing ~= bufnr then
       pcall(vim.api.nvim_buf_delete, existing, { force = true })

@@ -63,7 +63,7 @@ local function configure_note_buffer(bufnr, id, title, body)
 	vim.bo[bufnr].readonly = false
 	vim.bo[bufnr].buftype = "acwrite"
 	vim.bo[bufnr].bufhidden = "hide"
-	local name = string.format("joplin://%s %s", id or "", title or "Untitled")
+	local name = title or "Untitled"
 	clear_existing(name)
 	vim.api.nvim_buf_set_name(bufnr, name)
 	vim.bo[bufnr].undolevels = old_undolevels

@@ -2,6 +2,7 @@
 
 ## Yes
 
+- [ ] session restore
 - [ ] sem sim search
 - [ ] readme updates
   - [ ] umap
@@ -18,9 +19,10 @@
 
 ## Done
 
+- [x] marksman fix
+- [x] note name fix
 - [x] fix search problem
 - [x] integrate search and open
 - [x] show todo state
 - [x] uncategorized creation
 - [x] timenote creation
-
