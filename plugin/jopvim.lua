@@ -56,3 +56,7 @@ end, { desc = "Create a link to a Joplin note" })
 vim.api.nvim_create_user_command("JopOpenLink", function()
   require("jopvim").open_link()
 end, { desc = "Open the Joplin note link at cursor" })
+
+vim.api.nvim_create_user_command("JopNote", function(opts)
+  require("jopvim").jopnote_command(opts)
+end, { desc = "Create Joplin note from content, range, or empty", nargs = "*", range = true })

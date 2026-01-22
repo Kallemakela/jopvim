@@ -1,5 +1,6 @@
 local Metadata = require("jopvim.metadata")
 local JoplinAPI = require("jopvim.joplinapi")
+local Config = require("jopvim.config")
 
 local M = {}
 
@@ -36,14 +37,34 @@ function M.finalize(bufnr, new_title)
   return meta
 end
 
+local function update_title_with_mode(bufnr, meta, derived, mode)
+  if mode == "confirm" then
+    local current = meta.title or ""
+    local choice = vim.fn.confirm(
+      string.format('Update title from "%s" to "%s"?', current, derived),
+      "&Yes\n&No",
+      1
+    )
+    if choice ~= 1 then return end
+  end
+  local ok, res = pcall(JoplinAPI.update_note, meta.id, { title = derived })
+  if ok then
+    M.finalize(bufnr, res.title or derived)
+    if mode == "notify" then
+      vim.notify(string.format('Title updated to "%s"', res.title or derived))
+    end
+  end
+end
+
 function M.maybe_update_title(bufnr, body)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
   local meta = Metadata.get(bufnr)
   if not meta or not meta.id or meta.id == "" then return end
   local derived = M.derive_title(body)
   if not M.should_update(meta, derived) then return end
-  local ok, res = pcall(JoplinAPI.update_note, meta.id, { title = derived })
-  if ok then M.finalize(bufnr, res.title or derived) end
+  local config = Config.get()
+  local mode = config.title_update_mode or "silent"
+  update_title_with_mode(bufnr, meta, derived, mode)
 end
 
 return M
