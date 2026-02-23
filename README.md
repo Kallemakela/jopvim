@@ -4,6 +4,10 @@ A Neovim plugin for working with [Joplin](https://joplinapp.org) notes via the W
 Supports basic CRUD + quick note options for creating uncategorized or auto-categorized notes
 + full note body fuzzy search.
 
+
+https://github.com/user-attachments/assets/53294e12-4e86-49df-9511-7081f39859a6
+
+
 ## Requirements
 
 - Neovim 0.8+
