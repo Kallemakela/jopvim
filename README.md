@@ -10,6 +10,7 @@ Supports basic CRUD + quick note options for creating uncategorized or auto-cate
 - [nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - Joplin desktop app with Web Clipper enabled
 - `sqlite3` binary in PATH (for `:JopFuzzySearch` only)
+- [joplin-text-server](https://github.com/Kallemakela/joplin-text-server) (optional, for `:JopCreateCategorizedNote`)
 
 ## Setup
 
@@ -17,7 +18,7 @@ Supports basic CRUD + quick note options for creating uncategorized or auto-cate
 require("jopvim").setup({
   joplin_token = "your_token_here",        -- or set $JOPLIN_TOKEN env var
   joplin_url = "http://localhost:41184",   -- Joplin Web Clipper URL
-  categorizer_url = "http://localhost:13131/category", -- external categorizer API
+  categorizer_url = "http://localhost:13131/category", -- external categorizer API (see https://github.com/Kallemakela/joplin-text-server)
   title_strategy = "first_non_empty_line", -- or "filename"
   sqlite_path = "~/.config/joplin-desktop/database.sqlite",
   fuzzy_min_chars = 2,
