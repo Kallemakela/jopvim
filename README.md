@@ -31,8 +31,7 @@ require("jopvim").setup({
 
 | Command | Description |
 |---|---|
-| `:JopOpen` | Browse recent notes in a paginated Telescope picker (20 per page, `<C-n>` for next page) |
-| `:JopSearch` | Live full-text search via the Joplin API (min 2 chars) |
+| `:JopOpen` | Open notes, C-n/C-p pagination, C-f to cycle filter (all/todo/todo_incomplete/completed), C-d to toggle todo completion |
 | `:JopFuzzySearch` | Fuzzy search over the local Joplin SQLite database with markdown preview |
 | `:JopCreateUncategorizedNote` | Create a note in the configured uncategorized folder |
 | `:JopCreateCategorizedNote` | Post buffer content to categorizer API, pick a category, create note |
@@ -41,6 +40,7 @@ require("jopvim").setup({
 | `:JopCreateLink` | Pick a note via Telescope and insert a `[title](:/id)` link at cursor |
 | `:JopOpenLink` | Open the Joplin link under the cursor in a new buffer |
 | `:JopMeta` | Print the current buffer's note metadata (id, title) as JSON |
+| `:JopNote [content] [folder_id=...]` | Create a note from args, visual selection, or empty; accepts `folder_id=` flag |
 
 ## Keymaps
 
@@ -51,9 +51,22 @@ Buffer-local keymaps applied to every opened Joplin note:
 | `gd` | Open the Joplin link under cursor (`:JopOpenLink`) |
 | `<leader>l` | Insert a link to another note at cursor (`:JopCreateLink`) |
 
+Keymaps active inside the `:JopOpen` picker:
+
+| Key | Action |
+|---|---|
+| `<C-n>` | Next page |
+| `<C-p>` | Previous page |
+| `<C-f>` | Cycle filter: all -> todo -> todo_incomplete -> completed |
+| `<C-d>` | Toggle todo completion on the selected entry |
+
 ## Note buffers
 
-Notes open as `buftype=acwrite` buffers. Writing with `:w` saves the note back to Joplin via the API. If the first non-empty line changes, the note title is updated automatically and the buffer is renamed.
+Notes open as `buftype=acwrite` buffers. Writing with `:w` saves the note back to Joplin via the API. If the first non-empty line changes, the note title is updated automatically and the buffer is renamed. Title update behavior is controlled by `title_update_mode`: `"silent"` (default), `"notify"`, or `"confirm"`.
+
+## Session restore
+
+Note buffers survive a Vim session save/restore. On `SessionLoadPost`, any buffer matching a Joplin note pattern is re-fetched and re-opened from Joplin.
 
 ## Health check
 
