@@ -3,9 +3,7 @@
 A Neovim plugin for working with [Joplin](https://joplinapp.org) notes via the Web Clipper API.
 Supports basic CRUD + quick note options for creating uncategorized or auto-categorized notes + full note body fuzzy search.
 
-
-https://github.com/user-attachments/assets/53294e12-4e86-49df-9511-7081f39859a6
-
+https://github.com/user-attachments/assets/06cd9c3c-f0c2-4897-aa20-eb58240666dd
 
 ## Requirements
 
